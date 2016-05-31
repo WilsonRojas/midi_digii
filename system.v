@@ -25,20 +25,22 @@ module system
 	output            uart_txd,
 	///GPIO
 	inout		[7:0] gpio_io,
-	//SPI
+	
+	//SPI0
 	input             spi_miso, 
 	output            spi_mosi,
 	output            spi_clk,
-	output 		[spi0_cs_width-1:0] spi_cs,
+	output 	[spi0_cs_width-1:0] spi_cs,
 	//SPI1
 	input             spi_miso1, 
 	output            spi_mosi1,
 	output            spi_clk1,
-	output 		[spi1_cs_width-1:0] spi_cs1,
+	output 	[spi1_cs_width-1:0] spi_cs1,
 	//MIDI
 	output [7:0]	status0,
 	output [7:0]	data10,
 	output [7:0]	data20,
+
         // CPU Interface
         input             [12:0] addr,
         input             [7:0]  sram_data,
@@ -60,8 +62,8 @@ wire [31:0]  lm32i_adr,
              lm32d_adr,
              uart0_adr,
              spi0_adr,
-	     spi1_adr,
-	     midi0_adr,		
+             spi1_adr,
+	     midi0_adr,//w
              timer0_adr,
              gpio0_adr,
              bram0_adr,
@@ -74,10 +76,10 @@ wire [31:0]  lm32i_dat_r,
              lm32d_dat_w,
              spi0_dat_r,
              spi0_dat_w,
-	     spi1_dat_r,
+             spi1_dat_r,
              spi1_dat_w,
-	     midi0_dat_r,
-	     midi0_dat_w,
+             midi0_dat_r,//w
+	     midi0_dat_w,//w
              uart0_dat_r,
              uart0_dat_w,
              timer0_dat_r,
@@ -93,8 +95,8 @@ wire [3:0]   lm32i_sel,
              lm32d_sel,
              uart0_sel,
              spi0_sel,
-	     spi1_sel,
-	     midi0_sel,
+             spi1_sel,
+	     midi0_sel,//w
              timer0_sel,
              gpio0_sel,
              bram0_sel,
@@ -105,7 +107,7 @@ wire         lm32i_we,
              uart0_we,
              spi0_we,
              spi1_we,
-	     midi0_we,
+	     midi0_we,//w
              timer0_we,
              gpio0_we,
              bram0_we,
@@ -116,7 +118,7 @@ wire         lm32i_cyc,
              uart0_cyc,
              spi0_cyc,
              spi1_cyc,
-	     midi0_cyc,
+	     midi0_cyc,//w
              timer0_cyc,
              gpio0_cyc,
              bram0_cyc,
@@ -126,7 +128,7 @@ wire         lm32i_stb,
              lm32d_stb,
              uart0_stb,
              spi0_stb,
-	     spi1_stb,
+             spi1_stb,
 	     midi0_stb,
              timer0_stb,
              gpio0_stb,
@@ -167,7 +169,7 @@ wire         uart0_intr = 0;
 wire   [1:0] timer0_intr;
 wire         gpio0_intr;
 
-assign intr_n = { 28'hFFFFFFF, 1'b1, ~gpio0_intr, 1'b1, 1'b1};
+assign intr_n = { 28'hFFFFFFF, 1'b1, ~gpio0_intr, 1'b1, 1'b1 };
 
 //---------------------------------------------------------------------------
 // Wishbone Interconnect
@@ -178,9 +180,10 @@ conbus #(
 	.s1_addr(3'b010),	// uart     0x20000000 
 	.s2_addr(3'b011),	// timer    0x30000000 
 	.s3_addr(3'b100),	// gpio     0x40000000 
-	.s4_addr(3'b101),    	//spi 	    0x50000000
-	.s5_addr(3'b110),     	//spi1	    0x60000000
-	.s6_addr(3'b111)	//midi	    0x70000000
+	.s4_addr(3'b101),        //spi0     0x50000000
+	.s5_addr(3'b110),	//spi1 	    0x60000000
+	.s6_addr(3'b111)	//midi0     0x70000000    
+
 ) conbus0(
 	.sys_clk( clk ),
 	.sys_rst( ~rst ),
@@ -270,7 +273,7 @@ conbus #(
 	.s3_cyc_o(  gpio0_cyc   ),
 	.s3_stb_o(  gpio0_stb   ),
 	.s3_ack_i(  gpio0_ack   ),
-	// Slave4
+// Slave4
 	.s4_dat_i(  spi0_dat_r ),
 	.s4_dat_o(  spi0_dat_w ),
 	.s4_adr_o(  spi0_adr   ),
@@ -279,7 +282,7 @@ conbus #(
 	.s4_cyc_o(  spi0_cyc   ),
 	.s4_stb_o(  spi0_stb   ),
 	.s4_ack_i(  spi0_ack   ),
-	// Slave5
+// Slave5
 	.s5_dat_i(  spi1_dat_r ),
 	.s5_dat_o(  spi1_dat_w ),
 	.s5_adr_o(  spi1_adr   ),
@@ -419,39 +422,38 @@ wb_gpio gpio0 (
 	.wb_dat_o( gpio0_dat_r  ),
 	.wb_stb_i( gpio0_stb    ),
 	.wb_cyc_i( gpio0_cyc    ),
-	.wb_we_i(  gpio0_we     ),
+	.wb_we_i (  gpio0_we    ),
 	.wb_ack_o( gpio0_ack    ), 
+	//interrupt
+	.irq     (  gpio0_intr	),
 	// GPIO
-	.gpio_io(gpio_io),
-	.irq( gpio0_intr)
+	.gpio_io (	gpio_io		)	
 );
 
 //---------------------------------------------------------------------------
 // spi0
 //---------------------------------------------------------------------------
-wire spi0_mosi;
-wire spi0_miso;
-wire spi0_sck;
+wire spi_mosi;
+wire spi_miso;
+wire spi_sck;
 
-wb_spi #( .CS_WIDTH(spi0_cs_width)) 
-	spi0 (
+wb_spi spi0 (
 	.clk(      clk          ),
 	.reset(    ~rst          ),
 	//
-	.wb_adr_i( spi0_adr   ),
-	.wb_dat_i( spi0_dat_w ),
-	.wb_dat_o( spi0_dat_r ),
-	.wb_stb_i( spi0_stb   ),
-	.wb_cyc_i( spi0_cyc   ),
-	.wb_we_i(  spi0_we    ),
-	.wb_sel_i( spi0_sel   ),
-	.wb_ack_o( spi0_ack   ), 
-	.spi_cs  ( spi_cs     ),
-	.spi_sck( spi0_clk    ),
-	.spi_mosi( spi0_mosi  ),
-	.spi_miso( spi0_miso  )
+	.wb_adr_i(  spi0_adr   ),
+	.wb_dat_i(  spi0_dat_w ),
+	.wb_dat_o(  spi0_dat_r ),
+	.wb_stb_i(  spi0_stb   ),
+	.wb_cyc_i(  spi0_cyc   ),
+	.wb_we_i (   spi0_we    ),
+	.wb_sel_i(  spi0_sel   ),
+	.wb_ack_o(  spi0_ack   ),
+	.spi_cs  (  spi0_cs	   ), 
+	.spi_sck (  spi0_clk   ),
+	.spi_mosi(  spi0_mosi  ),
+	.spi_miso(  spi0_miso  )
 );
-
 //---------------------------------------------------------------------------
 // spi1
 //---------------------------------------------------------------------------
@@ -459,24 +461,24 @@ wire spi1_mosi;
 wire spi1_miso;
 wire spi1_sck;
 
-wb_spi #( .CS_WIDTH(spi1_cs_width) )
-	spi1  (
+wb_spi spi1 (
 	.clk(      clk          ),
 	.reset(    ~rst          ),
 	//
-	.wb_adr_i( spi1_adr   ),
-	.wb_dat_i( spi1_dat_w ),
-	.wb_dat_o( spi1_dat_r ),
-	.wb_stb_i( spi1_stb   ),
-	.wb_cyc_i( spi1_cyc   ),
-	.wb_we_i(  spi1_we    ),
-	.wb_sel_i( spi1_sel   ),
-	.wb_ack_o( spi1_ack   ), 
-	.spi_cs  ( spi1_cs    ),
-	.spi_sck(  spi1_clk   ),
+	.wb_adr_i(  spi1_adr   ),
+	.wb_dat_i(  spi1_dat_w ),
+	.wb_dat_o(  spi1_dat_r ),
+	.wb_stb_i(  spi1_stb   ),
+	.wb_cyc_i(  spi1_cyc   ),
+	.wb_we_i(   spi1_we    ),
+	.wb_sel_i(  spi1_sel   ),
+	.wb_ack_o(  spi1_ack  ),
+	.spi_cs  (  spi1_cs    ), 
+	.spi_sck (  spi1_clk  ),
 	.spi_mosi( spi1_mosi  ),
 	.spi_miso( spi1_miso  )
 );
+
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
 //midi
@@ -501,22 +503,24 @@ wb_midi midi0(
 //----------------------------------------------------------------------------
 // Mux UART wires according to sw[0]
 //----------------------------------------------------------------------------
+//UART
 assign uart_txd  = uart0_txd;
 assign uart0_rxd = uart_rxd;
 assign led       = ~uart_txd;
-
+//SPI0
 assign spi_mosi = spi0_mosi;
 assign spi0_miso = spi_miso;
 assign spi_clk = spi0_clk;
-assign spi_cs = spi_cs;
-
+assign spi_cs = spi0_cs;
+//SPI1
 assign spi_mosi1 = spi1_mosi;
 assign spi1_miso = spi_miso1;
 assign spi_clk1 = spi1_clk;
 assign spi_cs1 = spi1_cs;
 
-assign status = status0;
-assign data1 = data10;
-assign data2 = data20;
+//nota: creo que no es necesario (wil)
+//assign status = status0;
+//assign data1 = data10;
+//assign data2 = data20;
 
 endmodule 
