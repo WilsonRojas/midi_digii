@@ -9,6 +9,7 @@ void irq_handler(uint32_t pending)
 {
 	irq_disable();	
 	gpio_set_out(0xFF);
+        //irq_enable();
 }
 
 
@@ -19,7 +20,7 @@ int main()
 
         irq_enable();
         irq_set_mask(0x04);
-	
+	midi_inicio();
 	//uint32_t a2 = 4;
 	/*while (gpio0 -> gpio_dir = 0xFF){
 		
@@ -37,7 +38,7 @@ char c;// = gpio_get_in();
 char m;
 	
 	while (1){
-        irq_enable();
+        
 	spi_set_cs(spi0, ~0x00);
 	//msleep(100);
 	spi_set_cs(spi0, ~0xFF);
@@ -53,9 +54,12 @@ char m;
 	
 	
 	a= gpio_get_in();
+	nsleep(5);
 	gpio_set_out(a);
+	nsleep(5);
 	b = a << 4;
 	gpio_set_out(b);
+	nsleep(5);
 	
 	irq_set_mask(0x00);
 	

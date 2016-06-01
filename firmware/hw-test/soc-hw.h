@@ -141,11 +141,11 @@ typedef struct {
 	volatile uint8_t data2;
 }midi_t;
 
-char midi_inicio();
-void midi_set_men_cha(char mens_canal);//byte status
-void midi_set_data1(char d1);
-void midi_set_data1(char d2);
-char midi_transmite();
+char midi_start();
+//void midi_set_men_cha(char mens_canal);//byte status
+//void midi_set_data1(char d1);
+//void midi_set_data1(char d2);
+//char midi_transmite();
 //--------------------------------------
 //--------------------------------------
 extern timer_t  *timer0;

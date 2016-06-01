@@ -4,15 +4,18 @@ uart_t   *uart0  = (uart_t *)   0x20000000;
 timer_t  *timer0 = (timer_t *)  0x30000000;
 gpio_t   *gpio0  = (gpio_t *)   0x40000000;
 spi_t	*spi0 	= (spi_t *)  	0x50000000;
-spi_t	*spi1	=	(spi_t *)	0x60000000; 
+spi_t	*spi1	= (spi_t *)	0x60000000;
+midi_t	*midi0	= (midi_t *)	0x70000000;
+ 
 
-isr_ptr_t isr_table[32];
+//isr_ptr_t isr_table[32];
 
 
 void tic_isr();
 /***************************************************************************
  * IRQ handling
  */
+/*
 void isr_null()
 {
 }
@@ -43,7 +46,7 @@ void isr_unregister(int irq)
 {
 	isr_table[irq] = &isr_null;
 }
-
+*/
 /***************************************************************************
  * TIMER Functions
  */
@@ -95,7 +98,7 @@ void tic_init()
 	timer0->counter0 = 0;
 	timer0->tcr0     = TIMER_EN | TIMER_AR | TIMER_IRQEN;
 
-	isr_register(1, &tic_isr);
+	//isr_register(1, &tic_isr);
 }
 
 
@@ -241,4 +244,43 @@ void spi1_set_miso(char c){
 	 while ((spi1 -> spi_run));
 	 spi1->spi_rx_tx = c;
 }*/
+/*****************************************************
+midi funtions
+/****************************************************/
+char midi_start()
+	{
+	midi0->status=0xFF;
+	midi0->data1=0xFF;
+	midi0->data2=0xFF;
+	}
+/*
+void midi_set_men_chan(char mens_canal)//byte status
+	{
+	midi0->status=0x00;
+	midi0->data1=0x00;
+	midi0->data1=0x00;
+	}
+
+void midi_set_data1(char d1)
+	{
+	midi0->status=0x00;
+	midi0->data1=0x00;
+	midi0->data1=0x00;
+	}
+
+void midi_set_data2(char d2)
+	{
+	midi0->status=0x00;
+	midi0->data1=0x00;
+	midi0->data1=0x00;
+	}
+
+char midi_transmite()
+	{
+	midi0->status=0x00;
+	midi0->data1=0x00;
+	midi0->data1=0x00;
+	}
+*/
+//Ens midi funcions
 

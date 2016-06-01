@@ -247,13 +247,13 @@ void spi1_set_miso(char c){
 /*****************************************************
 midi funtions
 /****************************************************/
-char midi_inicio()
+char midi_start()
 	{
 	midi0->status=0xFF;
 	midi0->data1=0xFF;
 	midi0->data2=0xFF;
 	}
-
+/*
 void midi_set_men_chan(char mens_canal)//byte status
 	{
 	midi0->status=0x00;
@@ -281,6 +281,6 @@ char midi_transmite()
 	midi0->data1=0x00;
 	midi0->data1=0x00;
 	}
-
+*/
 //Ens midi funcions
 

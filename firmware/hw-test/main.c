@@ -20,7 +20,7 @@ int main()
 
         irq_enable();
         irq_set_mask(0x04);
-	midi_inicio();
+	midi_start();
 	//uint32_t a2 = 4;
 	/*while (gpio0 -> gpio_dir = 0xFF){
 		
