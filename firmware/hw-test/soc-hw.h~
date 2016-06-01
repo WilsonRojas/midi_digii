@@ -141,8 +141,9 @@ typedef struct {
 	volatile uint8_t data2;
 }midi_t;
 
-char midi_start();
-//void midi_set_men_cha(char mens_canal);//byte status
+char midi_start();//inicia los tres registros 
+void midi_note_on(char height, char velocity);
+char midi_note_off();
 //void midi_set_data1(char d1);
 //void midi_set_data1(char d2);
 //char midi_transmite();

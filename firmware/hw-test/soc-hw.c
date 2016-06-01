@@ -249,10 +249,23 @@ midi funtions
 /****************************************************/
 char midi_start()
 	{
-	midi0->status=0xFF;
-	midi0->data1=0xFF;
-	midi0->data2=0xFF;
+	midi0->status=0x10000000;
+	midi0->data1=0x00;
+	midi0->data2=0x00;
 	}
+void midi_note_on(char height, char velocity)
+	{
+	midi0->status=0x9A;
+	midi0->data1=height;
+	midi0->data2=velocity;
+	}
+char midi_note_off()
+	{
+	midi0->status=0x9A;
+	midi0->data1=0x00;
+	midi0->data2=0x00;
+	}
+
 /*
 void midi_set_men_chan(char mens_canal)//byte status
 	{

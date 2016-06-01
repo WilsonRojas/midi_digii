@@ -15,12 +15,20 @@ void irq_handler(uint32_t pending)
 
 int main()
 {
-	
-        gpio_set_dir(0xF0);
+	char veloc;//velocidad constante 100 en data2
+	char heig;//nota grabe 0 to 127	
 
+        gpio_set_dir(0xF0);
+	
         irq_enable();
         irq_set_mask(0x04);
-	midi_inicio();
+	msleep(5);
+
+	veloc=0x64;
+	heig=0x1F;
+	midi_start();
+	midi_note_on(heig, veloc);
+	midi_note_off();
 	//uint32_t a2 = 4;
 	/*while (gpio0 -> gpio_dir = 0xFF){
 		
